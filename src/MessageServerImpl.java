@@ -1,4 +1,7 @@
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,7 +39,7 @@ public class MessageServerImpl implements MessageServer {
 		}
 		this.send(send.toString());
 	}
-	
+
 	@Override
 	public void sendLSRA(HashMap<Integer, Advert> advert, List<Integer> listAdvert) {
 		StringBuilder send = new StringBuilder(Message.LSRA.name());
@@ -62,7 +65,36 @@ public class MessageServerImpl implements MessageServer {
 		} else {
 			this.send(Message.SUPN.toString());
 		}
+	}
 
+	@Override
+	public boolean sendASKReponse(boolean check, boolean check2, String idAnnonce) {
+		if (check && check2) {
+			this.send(Message.ASKY.toString() + ";" + idAnnonce);
+			return true;
+		} else {
+			this.send(Message.ASKN.toString() + ";" + idAnnonce);
+			return false;
+		}
+
+	}
+
+	@Override
+	public void sendCCSVReponse(boolean check, boolean check2, String[] messageSplit, InetAddress adress,
+			Socket socket) {
+		if (check && check2) {
+			try {
+				PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
+				String m = Message.CSVC.toString() + ";" + messageSplit[1] + ";" + messageSplit[2] + ";" + adress;
+				pw2.println(m);
+				pw2.flush();
+				pw2.close();
+			} catch (IOException e) {
+				System.err.println("Problem lors de l'envoi au vendeur");
+			}
+		} else {
+			this.send(Message.CSVN.toString() + ";" + messageSplit[1]);
+		}
 	}
 
 }

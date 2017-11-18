@@ -2,7 +2,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,6 +18,7 @@ public class ServerThread implements Runnable {
 	private HashMap<Integer, User> user;
 	private List<Integer> counter;
 	private Integer idUser;
+	private List<String> idAdvertWhereASKA;
 
 	public ServerThread(Socket s, HashMap<Integer, Advert> advert, HashMap<Integer, User> user, List<Integer> counter)
 			throws IOException {
@@ -26,6 +29,7 @@ public class ServerThread implements Runnable {
 		this.advert = advert;
 		this.counter = counter;
 		this.user = user;
+		this.idAdvertWhereASKA = new ArrayList<String>();
 	}
 
 	private void deconnect() {
@@ -90,9 +94,107 @@ public class ServerThread implements Runnable {
 		return (res && res2);
 	}
 
-	private boolean supp(String[] messageSplit) {
-		try {
+	private void freeAvailability() {
+		User courant = this.user.get(this.idUser);
+		if (courant.getIdUserCommunication() != -1) {
+			this.user.get(courant.getIdUserCommunication()).setIdUserCommunication(-1);
+			courant.setIdUserCommunication(-1);
+		}
+	}
 
+	private boolean checkValidity(Advert demande) {
+		if (demande == null) { // annonce plus active
+			return false;
+		}
+		if (demande.getIdVendeur() == this.idUser) { // ma propre annonce
+			return false;
+		}
+		User vendeur = this.user.get(this.advert.get(demande).getId());
+		if (vendeur == null) { // vendeur plus actif
+			return false;
+		}
+		return true;
+	}
+
+	private boolean aska(String[] messageSplit) {
+		Integer numAnnonce = Integer.parseInt(messageSplit[1]);
+		Advert demande = this.advert.get(numAnnonce);
+		User vendeur = this.user.get(this.advert.get(demande).getId());
+		if (checkValidity(demande) == false) {
+			return false;
+		}
+		if (vendeur.getIdUserCommunication() != -1) { // vendeur occupe
+			return false;
+		}
+		User courant = this.user.get(this.idUser);
+		courant.setIdUserCommunication(vendeur.getId());
+		vendeur.setIdUserCommunication(courant.getId());
+		return true;
+	}
+
+	public void aska(String message, String[] messageSplit) {
+		boolean res = this.checkLength(message, messageSplit.length, 2);
+		freeAvailability();
+		boolean res2 = this.aska(messageSplit);
+		res = this.messageServer.sendASKReponse(res, res2, messageSplit[1]);
+		if (res) {
+			this.idAdvertWhereASKA.add(messageSplit[1]);
+		}
+	}
+
+	public Socket ccsv(String[] messageSplit) {
+		if (!this.idAdvertWhereASKA.contains(messageSplit[1])) {
+			return null;
+		}
+		Integer numAnnonce = Integer.parseInt(messageSplit[1]);
+		Advert demande = this.advert.get(numAnnonce);
+		if (checkValidity(demande) == false) {
+			return null;
+		}
+		return this.user.get(this.advert.get(demande).getId()).getSocket();
+	}
+
+	public void ccsv(String message, String[] messageSplit) {
+		boolean res = this.checkLengthShort(message, messageSplit.length, 3);
+		Socket socket = this.ccsv(messageSplit);
+		boolean res2 = (socket == null) ? false : true;
+		InetAddress ia = this.user.get(this.idUser).getSocket().getInetAddress();
+		this.messageServer.sendCCSVReponse(res, res2, messageSplit, ia, socket);
+	}
+
+	private void list(String message, String[] messageSplit) {
+		this.checkLength(message, messageSplit.length, 1);
+		freeAvailability();
+		this.messageServer.sendLSRA(this.advert);
+	}
+
+	private void newa(String message, String[] messageSplit, int lenghtPartOne) {
+		boolean res = this.checkLengthShort(message, messageSplit.length, 2);
+		freeAvailability();
+		Integer id = newIdAdvert();
+		this.user.get(idUser).addListIdAdvert(id);
+		Advert a = new Advert(id, message.substring(lenghtPartOne), idUser);
+		Advert aRes = this.advert.put(id, a);
+		this.messageServer.sendNEWReponse(res, aRes != a);
+	}
+
+	private void own(String message, String[] messageSplit) {
+		this.checkLength(message, messageSplit.length, 1);
+		freeAvailability();
+		this.messageServer.sendLSRA(this.advert, this.user.get(idUser).getListIdAdvert());
+	}
+
+	private void quit(String message, String[] messageSplit) {
+		this.checkLength(message, messageSplit.length, 1);
+		freeAvailability();
+		this.end = true;
+	}
+
+	private void supp(String message, String[] messageSplit) {
+		boolean res = true, res2;
+		try {
+			res = this.checkLength(message, messageSplit.length, 2);
+			freeAvailability();
 			Integer id = Integer.parseInt(messageSplit[1]);
 			Advert a = advert.get(id);
 			if (a == null) {
@@ -101,53 +203,44 @@ public class ServerThread implements Runnable {
 				throw new NotSeller(this.idUser, a.getIdVendeur());
 			} else {
 				this.user.get(this.idUser).removeListIdAdvert(id);
-				Advert res = this.advert.remove(id);
-				return (res != null);
+				Advert adRes = this.advert.remove(id);
+				res2 = adRes != null;
 			}
 		} catch (NotSeller e) {
 			System.err.println("Message supp not taken into account");
-			return false;
+			res2 = false;
 		} catch (AdvertUnknown e) {
 			System.err.println("Message supp not taken into account");
-			return false;
+			res2 = false;
 		}
-	}
-
-	private boolean newA(String message, int lenghtPartOne) {
-		Integer id = newIdAdvert();
-		this.user.get(idUser).addListIdAdvert(id);
-		Advert a = new Advert(id, message.substring(lenghtPartOne), idUser);
-		Advert res = this.advert.put(id, a);
-		return (res != a);
+		this.messageServer.sendSUPReponse(res, res2);
 	}
 
 	private void parseReceive(String message) {
 		try {
 			String[] messageSplit = message.split(";");
 			this.checkLengthShort(message, messageSplit.length, 0);
-			boolean res, res2;
 			switch (Message.valueOf(messageSplit[0])) {
 			case QUIT:
-				this.checkLength(message, messageSplit.length, 1);
-				this.end = true;
+				this.quit(message, messageSplit);
 				break;
 			case LIST:
-				this.checkLength(message, messageSplit.length, 1);
-				this.messageServer.sendLSRA(this.advert);
+				this.list(message, messageSplit);
 				break;
 			case OWNA:
-				this.checkLength(message, messageSplit.length, 1);
-				this.messageServer.sendLSRA(this.advert, this.user.get(idUser).getListIdAdvert());
+				this.own(message, messageSplit);
 				break;
 			case SUPA:
-				res = this.checkLength(message, messageSplit.length, 2);
-				res2 = this.supp(messageSplit);
-				this.messageServer.sendSUPReponse(res, res2);
+				this.supp(message, messageSplit);
 				break;
 			case NEWA:
-				res = this.checkLengthShort(message, messageSplit.length, 2);
-				res2 = this.newA(message, messageSplit[0].length() + 1);
-				this.messageServer.sendNEWReponse(res, res2);
+				this.newa(message, messageSplit, messageSplit[0].length() + 1);
+				break;
+			case ASKA:
+				this.aska(message, messageSplit);
+				break;
+			case CCSV:
+				this.ccsv(message, messageSplit);
 				break;
 			default:
 				System.err.println("Message received is unknown : " + message);
@@ -161,7 +254,7 @@ public class ServerThread implements Runnable {
 	public synchronized void run() {
 		this.idUser = newIdUser();
 		System.out.println("idUser " + idUser);
-		this.user.put(this.idUser, new User(this.idUser, socket.getInetAddress(), socket.getPort()));
+		this.user.put(this.idUser, new User(this.idUser, socket));
 		System.out.println("Connection Established : " + socket.getInetAddress() + " " + socket.getPort());
 		this.messageServer.sendHi();
 		String line = "";
