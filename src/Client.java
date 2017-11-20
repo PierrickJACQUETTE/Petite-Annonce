@@ -1,8 +1,4 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ConnectException;
 import java.net.Socket;
 
 public class Client {
@@ -15,7 +11,8 @@ public class Client {
 		try {
 			this.sock = new Socket((String) null, PORT);
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Pas de serveur sur ce port");
+			System.exit(0);
 		}
 	}
 
@@ -28,7 +25,7 @@ public class Client {
 		try {
 			Client client = new Client();
 			client.run();
-		} catch (IOException e){
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

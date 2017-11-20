@@ -28,7 +28,7 @@ public class ClientThread implements Runnable {
 			this.is.close();
 			this.os.close();
 			this.sock.close();
-		} catch (IOException e){
+		} catch (IOException e) {
 			System.err.println("IO Error - close");
 		}
 
@@ -52,7 +52,7 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	private void processForAdSupp(boolean opt){
+	private void processForAdSupp(boolean opt) {
 		if (opt) {
 			System.out.print("You want to remove an advert - Please give the advert id : ");
 		} else {
@@ -82,7 +82,7 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	public void sendCCSV(int ad){
+	public void sendCCSV(int ad) {
 		String tmp = Message.CCSV + ";" + ad + ";" + 1338;
 		os.println(tmp);
 		os.flush();
@@ -113,7 +113,7 @@ public class ClientThread implements Runnable {
 			ret += Message.OWNA;
 			break;
 		case "quit":
-			ret += Message.QUIT+";";
+			ret += Message.QUIT + ";";
 			break;
 		default:
 			System.out.println("Unknown command, use HELP if needed - you wrote : " + cmd);
@@ -122,7 +122,7 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	public synchronized void run(){
+	public synchronized void run() {
 		String line = null;
 		String[] check;
 
@@ -163,13 +163,14 @@ public class ClientThread implements Runnable {
 						sendCCSV(Integer.parseInt(check[1]));
 						break;
 					case ASKN:
-						System.out.println("Error - We couldn't established a connection - The user may be disconnected or occupied");
+						System.out.println(
+								"Error - We couldn't established a connection - The user may be disconnected or occupied");
 						break;
 					case CSVC:
 						int ad = Integer.parseInt(check[1]);
 						int port = Integer.parseInt(check[2]);
 						String adress = check[3];
-						System.out.println("ad "+ad+"- port "+port+" - adress"+adress);
+						System.out.println("ad " + ad + "- port " + port + " - adress" + adress);
 						break;
 					case LSRA:
 						if (check.length == 1) {
