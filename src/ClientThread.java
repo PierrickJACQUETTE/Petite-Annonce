@@ -10,7 +10,6 @@ public class ClientThread implements Runnable {
 	private Socket sock;
 	private BufferedReader br, is;
 	private PrintWriter os;
-	private boolean end;
 
 	public ClientThread(Socket sock) {
 		try {
@@ -23,7 +22,7 @@ public class ClientThread implements Runnable {
 		}
 	}
 
-	public void close() {
+	private void close() {
 		try {
 			this.br.close();
 			this.is.close();
@@ -35,7 +34,7 @@ public class ClientThread implements Runnable {
 
 	}
 
-	public String processNew() throws IOException {
+	private String processNew() throws IOException {
 		String ret = "", tmp = "", advert = "";
 		System.out.println("You want to make a new advert - press ENTER then type END to confirm your advert :");
 		while (tmp.toUpperCase().compareTo("END") != 0) {
@@ -53,25 +52,43 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	public String processDel() throws IOException {
+	private void processForAdSupp(boolean opt){
+		if (opt) {
+			System.out.print("You want to remove an advert - Please give the advert id : ");
+		} else {
+			System.out.print("You want to contact a seller - Please give the advert id : ");
+		}
+	}
+
+	private String processForAd(boolean opt) throws IOException {
 		String ret = "", tmp = "";
-		System.out.print("You want to remove an advert - Please give the advert id : ");
 		boolean goodToGo = false;
 		int res = 0;
+		processForAdSupp(opt);
 		while (!goodToGo) {
 			try {
 				tmp = br.readLine();
 				res = Integer.parseInt(tmp);
 				goodToGo = true;
 			} catch (NumberFormatException e) {
-				System.out.print("You want to remove an advert - Please give the advert id : ");
+				processForAdSupp(opt);
 			}
 		}
-		ret += Message.SUPA + ";" + res;
+		if (opt) {
+			ret += Message.SUPA + ";" + res;
+		} else {
+			ret += Message.ASKA + ";" + res;
+		}
 		return ret;
 	}
 
-	public String process(String cmd) throws IOException {
+	public void sendCCSV(int ad){
+		String tmp = Message.CCSV + ";" + ad + ";" + 1338;
+		os.println(tmp);
+		os.flush();
+	}
+
+	private String process(String cmd) throws IOException {
 		String ret = "";
 		switch (cmd.toLowerCase()) {
 		case "list":
@@ -82,7 +99,10 @@ public class ClientThread implements Runnable {
 			ret = processNew();
 			break;
 		case "del":
-			ret = processDel();
+			ret = processForAd(true);
+			break;
+		case "ask":
+			ret = processForAd(false);
 			break;
 		case "help":
 			System.out.println(
@@ -121,7 +141,6 @@ public class ClientThread implements Runnable {
 						os.flush();
 					}
 				}
-
 				if (is.ready()) {
 					response = is.readLine();
 
@@ -138,6 +157,19 @@ public class ClientThread implements Runnable {
 						break;
 					case SUPN:
 						System.out.println("Error - We couldn't delete the advert - You cannot remove others advert");
+						break;
+					case ASKY:
+						System.out.println("hell");
+						sendCCSV(Integer.parseInt(check[1]));
+						break;
+					case ASKN:
+						System.out.println("Error - We couldn't established a connection - The user may be disconnected or occupied");
+						break;
+					case CSVC:
+						int ad = Integer.parseInt(check[1]);
+						int port = Integer.parseInt(check[2]);
+						String adress = check[3];
+						System.out.println("ad "+ad+"- port "+port+" - adress"+adress);
 						break;
 					case LSRA:
 						if (check.length == 1) {
