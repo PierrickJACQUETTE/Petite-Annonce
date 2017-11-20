@@ -88,7 +88,6 @@ public class MessageServerImpl implements MessageServer {
 				String m = Message.CSVC.toString() + ";" + messageSplit[1] + ";" + messageSplit[2] + ";" + adress;
 				pw2.println(m);
 				pw2.flush();
-				pw2.close();
 			} catch (IOException e) {
 				System.err.println("Problem lors de l'envoi au vendeur");
 			}

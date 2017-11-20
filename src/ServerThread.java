@@ -99,6 +99,7 @@ public class ServerThread implements Runnable {
 		if (courant.getIdUserCommunication() != -1) {
 			this.user.get(courant.getIdUserCommunication()).setIdUserCommunication(-1);
 			courant.setIdUserCommunication(-1);
+			this.user.put(courant.getId(), courant);
 		}
 	}
 
@@ -109,7 +110,7 @@ public class ServerThread implements Runnable {
 		if (demande.getIdVendeur() == this.idUser) { // ma propre annonce
 			return false;
 		}
-		User vendeur = this.user.get(this.advert.get(demande).getId());
+		User vendeur = this.user.get(demande.getIdVendeur());
 		if (vendeur == null) { // vendeur plus actif
 			return false;
 		}
@@ -119,16 +120,18 @@ public class ServerThread implements Runnable {
 	private boolean aska(String[] messageSplit) {
 		Integer numAnnonce = Integer.parseInt(messageSplit[1]);
 		Advert demande = this.advert.get(numAnnonce);
-		User vendeur = this.user.get(this.advert.get(demande).getId());
 		if (checkValidity(demande) == false) {
 			return false;
 		}
+		User vendeur = this.user.get(demande.getIdVendeur());
 		if (vendeur.getIdUserCommunication() != -1) { // vendeur occupe
 			return false;
 		}
 		User courant = this.user.get(this.idUser);
 		courant.setIdUserCommunication(vendeur.getId());
 		vendeur.setIdUserCommunication(courant.getId());
+		this.user.put(courant.getId(), courant);
+		this.user.put(vendeur.getId(), vendeur);
 		return true;
 	}
 
@@ -151,7 +154,7 @@ public class ServerThread implements Runnable {
 		if (checkValidity(demande) == false) {
 			return null;
 		}
-		return this.user.get(this.advert.get(demande).getId()).getSocket();
+		return this.user.get(demande.getIdVendeur()).getSocket();
 	}
 
 	public void ccsv(String message, String[] messageSplit) {
