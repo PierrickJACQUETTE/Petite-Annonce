@@ -118,7 +118,12 @@ public class ServerThread implements Runnable {
 	}
 
 	private boolean aska(String[] messageSplit) {
-		Integer numAnnonce = Integer.parseInt(messageSplit[1]);
+		Integer numAnnonce;
+		try {
+			numAnnonce = Integer.parseInt(messageSplit[1]);
+		} catch (NumberFormatException e) {
+			return false;
+		}
 		Advert demande = this.advert.get(numAnnonce);
 		if (checkValidity(demande) == false) {
 			return false;
@@ -149,7 +154,13 @@ public class ServerThread implements Runnable {
 		if (!this.idAdvertWhereASKA.contains(messageSplit[1])) {
 			return null;
 		}
-		Integer numAnnonce = Integer.parseInt(messageSplit[1]);
+		Integer numAnnonce;
+		try {
+			numAnnonce = Integer.parseInt(messageSplit[1]);
+			Integer.parseInt(messageSplit[2]);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 		Advert demande = this.advert.get(numAnnonce);
 		if (checkValidity(demande) == false) {
 			return null;
@@ -194,7 +205,7 @@ public class ServerThread implements Runnable {
 	}
 
 	private void supp(String message, String[] messageSplit) {
-		boolean res = true, res2;
+		boolean res = true, res2 = true;
 		try {
 			res = this.checkLength(message, messageSplit.length, 2);
 			freeAvailability();
@@ -209,6 +220,8 @@ public class ServerThread implements Runnable {
 				Advert adRes = this.advert.remove(id);
 				res2 = adRes != null;
 			}
+		} catch (NumberFormatException e) {
+			res2 = false;
 		} catch (NotSeller e) {
 			System.err.println("Message supp not taken into account");
 			res2 = false;
