@@ -85,7 +85,7 @@ public class MessageServerImpl implements MessageServer {
 		if (check && check2) {
 			try {
 				PrintWriter pw2 = new PrintWriter(socket.getOutputStream());
-				String m = Message.CSVC.toString() + ";" + messageSplit[1] + ";" + messageSplit[2] + ";" + adress;
+				String m = Message.CSVC.toString() + ";" + messageSplit[1] + ";" + messageSplit[2] + ";" + adress.toString().replaceAll("/", "");
 				pw2.println(m);
 				pw2.flush();
 			} catch (IOException e) {

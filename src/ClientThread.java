@@ -31,7 +31,6 @@ public class ClientThread implements Runnable {
 		} catch (IOException e) {
 			System.err.println("IO Error - close");
 		}
-
 	}
 
 	private String processNew() throws IOException {
@@ -40,7 +39,7 @@ public class ClientThread implements Runnable {
 		while (tmp.toUpperCase().compareTo("END") != 0) {
 			tmp = this.br.readLine();
 			if (tmp.toUpperCase().compareTo("END") != 0)
-				advert += tmp + " ";
+			advert += tmp + " ";
 		}
 
 		if (advert.replaceAll("\\s*", "").equals("")) {
@@ -52,7 +51,7 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	private void processForAdSupp(boolean opt) {
+	private void processForAdvertSupl(boolean opt) {
 		if (opt) {
 			System.out.print("You want to remove an advert - Please give the advert id : ");
 		} else {
@@ -60,18 +59,18 @@ public class ClientThread implements Runnable {
 		}
 	}
 
-	private String processForAd(boolean opt) throws IOException {
+	private String processForAdvert(boolean opt) throws IOException {
 		String ret = "", tmp = "";
 		boolean goodToGo = false;
 		int res = 0;
-		processForAdSupp(opt);
+		processForAdvertSupl(opt);
 		while (!goodToGo) {
 			try {
 				tmp = br.readLine();
 				res = Integer.parseInt(tmp);
 				goodToGo = true;
 			} catch (NumberFormatException e) {
-				processForAdSupp(opt);
+				processForAdvertSupl(opt);
 			}
 		}
 		if (opt) {
@@ -82,40 +81,47 @@ public class ClientThread implements Runnable {
 		return ret;
 	}
 
-	public void sendCCSV(int ad) {
-		String tmp = Message.CCSV + ";" + ad + ";" + 1338;
-		os.println(tmp);
-		os.flush();
+	private void sendCCSV(int ad) throws IOException {
+		ClientP2P p2p = new ClientP2P();
+		String tmp = Message.CCSV + ";" + ad + ";" + p2p.getPort();
+		os.println(tmp); os.flush();
+		p2p.start();
+		p2p.run();
+	}
+
+	private void processCSVC(String adress, int port){
+		ClientP2P p2p = new ClientP2P(port, adress);
+		p2p.run();
 	}
 
 	private String process(String cmd) throws IOException {
 		String ret = "";
 		switch (cmd.toLowerCase()) {
-		case "list":
+			case "list":
 			System.out.println("You asked for the list");
 			ret += Message.LIST;
 			break;
-		case "new":
+			case "new":
 			ret = processNew();
 			break;
-		case "del":
-			ret = processForAd(true);
+			case "del":
+			ret = processForAdvert(true);
 			break;
-		case "ask":
-			ret = processForAd(false);
+			case "ask":
+			ret = processForAdvert(false);
 			break;
-		case "help":
+			case "help":
 			System.out.println(
-					"You asked for the help : \n\nLIST - Display all the advert \nNEW  - Allow you to make your own advert \nDEL  - Allow you to delete one of your advert \nQUIT - Disconnect you\n");
+			"You asked for the help : \n\nLIST - Display all the advert \nNEW  - Allow you to make your own advert \nDEL  - Allow you to delete one of your advert \nQUIT - Disconnect you\n");
 			break;
-		case "own":
+			case "own":
 			System.out.println("You asked for your own advert");
 			ret += Message.OWNA;
 			break;
-		case "quit":
+			case "quit":
 			ret += Message.QUIT + ";";
 			break;
-		default:
+			default:
 			System.out.println("Unknown command, use HELP if needed - you wrote : " + cmd);
 			break;
 		}
@@ -146,33 +152,35 @@ public class ClientThread implements Runnable {
 
 					check = response.split(";");
 					switch (Message.valueOf(check[0])) {
-					case NEWY:
+						case NEWY:
 						System.out.println("Acknowledged");
 						break;
-					case NEWN:
+						case NEWN:
 						System.out.println("Error - We've met an isssue with your advert - Please try again");
 						break;
-					case SUPY:
+						case SUPY:
 						System.out.println("Acknowledged");
 						break;
-					case SUPN:
+						case SUPN:
 						System.out.println("Error - We couldn't delete the advert - You cannot remove others advert");
 						break;
-					case ASKY:
+						case ASKY:
 						System.out.println("hell");
 						sendCCSV(Integer.parseInt(check[1]));
 						break;
-					case ASKN:
+						case ASKN:
 						System.out.println(
-								"Error - We couldn't established a connection - The user may be disconnected or occupied");
+						"Error - We couldn't established a connection - The user may be disconnected or occupied");
 						break;
-					case CSVC:
+						case CSVC:
+						System.out.println("rz");
 						int ad = Integer.parseInt(check[1]);
 						int port = Integer.parseInt(check[2]);
 						String adress = check[3];
 						System.out.println("ad " + ad + "- port " + port + " - adress" + adress);
+						processCSVC(adress, port);
 						break;
-					case LSRA:
+						case LSRA:
 						if (check.length == 1) {
 							System.out.println("No advert");
 						}
@@ -180,10 +188,10 @@ public class ClientThread implements Runnable {
 							System.out.println("Advert n°" + check[i] + " : " + check[i + 1]);
 						}
 						break;
-					case HIHI:
+						case HIHI:
 						System.out.println("You are connected");
 						break;
-					default:
+						default:
 						System.out.println("DEFAULT");
 						break;
 					}
