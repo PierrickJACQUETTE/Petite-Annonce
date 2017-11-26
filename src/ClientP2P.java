@@ -6,7 +6,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.ServerSocket;
 
-public class ClientP2P {
+public class ClientP2P implements Runnable {
 
 	private int port;
 	private Socket sock;
@@ -23,11 +23,11 @@ public class ClientP2P {
 		}
 	}
 
-	public ClientP2P(int port, String adress){
+	public ClientP2P(int port, String adress, BufferedReader br){
 		try {
 			// System.out.println("28 "+ adress.substring(1, adress.length())+" "+port);
 			this.sock = new Socket(adress, port);
-			this.br = new BufferedReader(new InputStreamReader(System.in));
+			this.br = br;
 			this.is = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			this.os = new PrintWriter(sock.getOutputStream());
 		} catch (IOException e) {
@@ -78,9 +78,9 @@ public class ClientP2P {
 		}
 	}
 
-	public void start() throws IOException {
+	public void init(BufferedReader br) throws IOException {
 		this.sock = this.server.accept();
-		this.br = new BufferedReader(new InputStreamReader(System.in));
+		this.br = br;
 		this.is = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		this.os = new PrintWriter(sock.getOutputStream());
 	}
@@ -105,7 +105,6 @@ public class ClientP2P {
 				}
 				if (is.ready()) {
 					response = is.readLine();
-
 					check = response;
 					switch (check.toUpperCase()) {
 						case "QUIT":
@@ -113,7 +112,7 @@ public class ClientP2P {
 						line = check;
 						break;
 						default:
-						System.out.println(response);
+						System.out.println("> "+response);
 						break;
 					}
 				}

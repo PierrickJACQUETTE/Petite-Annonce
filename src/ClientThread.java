@@ -85,12 +85,12 @@ public class ClientThread implements Runnable {
 		ClientP2P p2p = new ClientP2P();
 		String tmp = Message.CCSV + ";" + ad + ";" + p2p.getPort();
 		os.println(tmp); os.flush();
-		p2p.start();
+		p2p.init(this.br);
 		p2p.run();
 	}
 
 	private void processCSVC(String adress, int port){
-		ClientP2P p2p = new ClientP2P(port, adress);
+		ClientP2P p2p = new ClientP2P(port, adress, this.br);
 		p2p.run();
 	}
 
@@ -98,32 +98,25 @@ public class ClientThread implements Runnable {
 		String ret = "";
 		switch (cmd.toLowerCase()) {
 			case "list":
-			System.out.println("You asked for the list");
-			ret += Message.LIST;
-			break;
+				System.out.println("You asked for the list");
+				ret += Message.LIST;
+				break;
 			case "new":
-			ret = processNew();
-			break;
+				ret = processNew(); break;
 			case "del":
-			ret = processForAdvert(true);
-			break;
+				ret = processForAdvert(true); break;
 			case "ask":
-			ret = processForAdvert(false);
-			break;
+				ret = processForAdvert(false); break;
 			case "help":
-			System.out.println(
-			"You asked for the help : \n\nLIST - Display all the advert \nNEW  - Allow you to make your own advert \nDEL  - Allow you to delete one of your advert \nQUIT - Disconnect you\n");
-			break;
+				System.out.println("You asked for the help : \n\nLIST - Display all the advert \nNEW  - Allow you to make your own advert \nDEL  - Allow you to delete one of your advert \nQUIT - Disconnect you\n"); break;
 			case "own":
-			System.out.println("You asked for your own advert");
-			ret += Message.OWNA;
-			break;
+				System.out.println("You asked for your own advert");
+				ret += Message.OWNA;
+				break;
 			case "quit":
-			ret += Message.QUIT + ";";
-			break;
+				ret += Message.QUIT + ";"; break;
 			default:
-			System.out.println("Unknown command, use HELP if needed - you wrote : " + cmd);
-			break;
+				System.out.println("Unknown command, use HELP if needed - you wrote : " + cmd); break;
 		}
 		return ret;
 	}
@@ -131,7 +124,6 @@ public class ClientThread implements Runnable {
 	public synchronized void run() {
 		String line = null;
 		String[] check;
-
 		try {
 
 			System.out.println("Enter Data to echo Server (Enter QUIT to end):");
@@ -147,53 +139,47 @@ public class ClientThread implements Runnable {
 						os.flush();
 					}
 				}
-				if (is.ready()) {
+				if(is.ready()){
 					response = is.readLine();
-
 					check = response.split(";");
 					switch (Message.valueOf(check[0])) {
 						case NEWY:
-						System.out.println("Acknowledged");
-						break;
+							System.out.println("Acknowledged"); break;
 						case NEWN:
-						System.out.println("Error - We've met an isssue with your advert - Please try again");
-						break;
+							System.out.println("Error - We've met an isssue with your advert - Please try again"); break;
 						case SUPY:
-						System.out.println("Acknowledged");
-						break;
+							System.out.println("Acknowledged"); break;
 						case SUPN:
-						System.out.println("Error - We couldn't delete the advert - You cannot remove others advert");
-						break;
+							System.out.println("Error - We couldn't delete the advert - You cannot remove others advert"); break;
 						case ASKY:
-						System.out.println("hell");
-						sendCCSV(Integer.parseInt(check[1]));
-						break;
+							try {
+								System.out.println("hell");
+								sendCCSV(Integer.parseInt(check[1]));
+							} catch(NumberFormatException e){}
+							break;
 						case ASKN:
-						System.out.println(
-						"Error - We couldn't established a connection - The user may be disconnected or occupied");
-						break;
+							System.out.println("Error - We couldn't established a connection - The user may be disconnected or occupied"); break;
 						case CSVC:
-						System.out.println("rz");
-						int ad = Integer.parseInt(check[1]);
-						int port = Integer.parseInt(check[2]);
-						String adress = check[3];
-						System.out.println("ad " + ad + "- port " + port + " - adress" + adress);
-						processCSVC(adress, port);
-						break;
+							try {
+								int ad = Integer.parseInt(check[1]);
+								int port = Integer.parseInt(check[2]);
+								String adress = check[3];
+								System.out.println("ad " + ad + "- port " + port + " - adress" + adress);
+								processCSVC(adress, port);
+							} catch(NumberFormatException e){}
+							break;
 						case LSRA:
-						if (check.length == 1) {
-							System.out.println("No advert");
-						}
-						for (int i = 1; i < check.length; i += 2) {
-							System.out.println("Advert n°" + check[i] + " : " + check[i + 1]);
-						}
-						break;
+							if (check.length == 1) {
+								System.out.println("No advert");
+							}
+							for (int i = 1; i < check.length; i += 2) {
+								System.out.println("Advert n°" + check[i] + " : " + check[i + 1]);
+							}
+							break;
 						case HIHI:
-						System.out.println("You are connected");
-						break;
+							System.out.println("You are connected"); break;
 						default:
-						System.out.println("DEFAULT");
-						break;
+							System.out.println("DEFAULT"); break;
 					}
 				}
 			}
@@ -203,6 +189,9 @@ public class ClientThread implements Runnable {
 		} catch (IOException e) {
 			System.out.println("Socket read Error");
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			close();
+			System.err.println("Server is offline");
 		} finally {
 			close();
 			System.out.println("Connection Closed");
