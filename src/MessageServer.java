@@ -21,4 +21,6 @@ public interface MessageServer {
 
 	public void sendCCSVReponse(boolean check, boolean check2, String[] messageSplit, InetAddress adress,
 			Socket socket);
+
+	public void sendQUIT();
 }

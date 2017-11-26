@@ -95,13 +95,17 @@ public class ServerThread implements Runnable {
 	}
 
 	private void freeAvailability() {
-		User courant = this.user.get(this.idUser);
-		if (courant.getIdUserCommunication() != -1) {
-			this.user.get(courant.getIdUserCommunication()).setIdUserCommunication(-1);
-			courant.setIdUserCommunication(-1);
-			this.user.put(courant.getId(), courant);
-		}
-	}
+        User courant = this.user.get(this.idUser);
+        if (courant.getIdUserCommunication() != -1) {
+            if(this.user.get(courant.getIdUserCommunication()) !=null){
+                User other = this.user.get(courant.getIdUserCommunication());
+                other.setIdUserCommunication(-1);
+                this.user.put(other.getId(), other);
+            }
+            courant.setIdUserCommunication(-1);
+            this.user.put(courant.getId(), courant);
+        }
+    }
 
 	private boolean checkValidity(Advert demande) {
 		if (demande == null) { // annonce plus active
@@ -275,6 +279,13 @@ public class ServerThread implements Runnable {
 		this.messageServer.sendHi();
 		String line = "";
 		try {
+
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+    			public void run() {
+					messageServer.sendQUIT();
+				}
+			});
+
 			while (!this.end) {
 				line = this.input.readLine();
 				if (line == null) {
@@ -289,6 +300,7 @@ public class ServerThread implements Runnable {
 			System.err.println("IO Error/ Client " + Thread.currentThread().getName() + " terminated abruptly");
 		} catch (NullPointerException e) {
 			this.deconnect();
+			e.printStackTrace();
 			System.out.println("Client " + Thread.currentThread().getName() + " Closed");
 		}
 	}

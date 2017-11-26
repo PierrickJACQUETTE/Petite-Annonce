@@ -6,7 +6,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.ServerSocket;
 
-public class ClientP2P implements Runnable {
+public class ClientP2P {
 
 	private int port;
 	private Socket sock;
@@ -25,7 +25,6 @@ public class ClientP2P implements Runnable {
 
 	public ClientP2P(int port, String adress, BufferedReader br){
 		try {
-			// System.out.println("28 "+ adress.substring(1, adress.length())+" "+port);
 			this.sock = new Socket(adress, port);
 			this.br = br;
 			this.is = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -90,7 +89,14 @@ public class ClientP2P implements Runnable {
 
 		try {
 
-			System.out.println("Welcone (Enter QUIT to end):");
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+    			public void run() {
+					os.println("CTRL");
+					os.flush();
+				}
+			});
+
+			System.out.println("Welcome (Enter QUIT to end):");
 
 			String response = null, tmp = "";
 			line = "";
@@ -107,19 +113,22 @@ public class ClientP2P implements Runnable {
 					response = is.readLine();
 					check = response;
 					switch (check.toUpperCase()) {
+						case "CTRL":
+							System.out.println("The other participant is offline");
+							line = "QUIT";
+							break;
 						case "QUIT":
-						System.out.println("End of discussion");
-						line = check;
-						break;
+							System.out.println("End of discussion");
+							line = check;
+							break;
 						default:
-						System.out.println("> "+response);
-						break;
+							System.out.println("> "+response); break;
 					}
 				}
 			}
 		} catch (ConnectException e) {
-			System.err.println("Server is offline");
-			System.exit(-1);
+			System.out.println("Disconnected from discussion");
+			close();
 		} catch (IOException e) {
 			System.out.println("Socket read Error");
 			e.printStackTrace();
