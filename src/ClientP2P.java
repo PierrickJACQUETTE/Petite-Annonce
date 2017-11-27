@@ -96,10 +96,10 @@ public class ClientP2P {
 			System.out.println("Welcome (Enter QUIT to end):");
 			String response = null, tmp = "";
 			line = "";
-			while (!line.replaceAll("\\s*", "").equals("QUIT")) {
+			while (!line.toUpperCase().replaceAll("\\s*", "").equals("QUIT")) {
 				if (br.ready()) {
 					line = br.readLine();
-					tmp = line.replaceAll("\\s*", "");
+					tmp = line.toLowerCase().replaceAll("\\s*", "");
 					if (!tmp.equals("")) {
 						os.println(tmp);
 						os.flush();
@@ -107,10 +107,11 @@ public class ClientP2P {
 				}
 				if (is.ready()) {
 					response = is.readLine();
-					switch (response) {
+					check = response;
+					switch (check.toUpperCase()) {
 						case "QUIT":
 							System.out.println("End of discussion");
-							line = response;
+							line = check;
 							break;
 						default:
 							System.out.println("> "+response); break;

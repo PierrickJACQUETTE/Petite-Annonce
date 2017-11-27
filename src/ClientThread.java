@@ -53,9 +53,9 @@ public class ClientThread implements Runnable {
 
 	private void processForAdvertSupl(boolean opt) {
 		if (opt) {
-			System.out.print("You want to remove an advert - Please give the advert id (press q to quit): ");
+			System.out.print("You want to remove an advert - Please give the advert id : ");
 		} else {
-			System.out.print("You want to contact a seller - Please give the advert id (press q to quit): ");
+			System.out.print("You want to contact a seller - Please give the advert id : ");
 		}
 	}
 
@@ -67,7 +67,6 @@ public class ClientThread implements Runnable {
 		while (!goodToGo) {
 			try {
 				tmp = br.readLine();
-				if(tmp.equals("q")) return "";
 				res = Integer.parseInt(tmp);
 				goodToGo = true;
 			} catch (NumberFormatException e) {
@@ -134,7 +133,7 @@ public class ClientThread implements Runnable {
 			while (!line.toUpperCase().replaceAll("\\s*", "").equals("QUIT")) {
 				if (br.ready()) {
 					line = br.readLine();
-					tmp = process(line.replaceAll("\\s*", ""));
+					tmp = process(line.toLowerCase().replaceAll("\\s*", ""));
 					if (!tmp.equals("")) {
 						os.println(tmp);
 						os.flush();
@@ -155,9 +154,7 @@ public class ClientThread implements Runnable {
 						case ASKY:
 							try {
 								sendCCSV(Integer.parseInt(check[1]));
-							} catch(NumberFormatException e){
-								System.err.println("An error as occured");
-							}
+							} catch(NumberFormatException e){}
 							break;
 						case ASKN:
 							System.out.println("Error - We couldn't established a connection - The user may be disconnected or occupied"); break;
@@ -168,9 +165,7 @@ public class ClientThread implements Runnable {
 								String adress = check[3];
 								System.out.println("You are contacted for the advert n°"+ad);
 								processCSVC(adress, port);
-							} catch(NumberFormatException e){
-								System.err.println("An error as occured");
-							}
+							} catch(NumberFormatException e){}
 							break;
 						case LSRA:
 							if (check.length == 1) {
@@ -185,7 +180,7 @@ public class ClientThread implements Runnable {
 						case QUIT:
 							throw new ConnectException();
 						default:
-							System.err.println("DEFAULT"); break;
+							System.out.println("DEFAULT"); break;
 					}
 				}
 			}
