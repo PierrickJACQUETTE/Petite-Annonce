@@ -128,13 +128,10 @@ public class ClientThread implements Runnable {
 		String line = null;
 		String[] check;
 		try {
-
 			System.out.println("Enter Data to echo Server (Enter QUIT to end):");
-
 			String response = null, tmp = "";
 			line = "";
 			while (!line.toUpperCase().replaceAll("\\s*", "").equals("QUIT")) {
-
 				if (br.ready()) {
 					line = br.readLine();
 					tmp = process(line.replaceAll("\\s*", ""));
@@ -143,7 +140,6 @@ public class ClientThread implements Runnable {
 						os.flush();
 					}
 				}
-
 				if(is.ready()){
 					response = is.readLine();
 					check = response.split(";");

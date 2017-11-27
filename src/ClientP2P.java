@@ -86,18 +86,14 @@ public class ClientP2P {
 
 	public synchronized void run() {
 		String line = null, check;
-
 		try {
-
 			Runtime.getRuntime().addShutdownHook(new Thread() {
     			public void run() {
 					os.println("QUIT");
 					os.flush();
 				}
 			});
-
 			System.out.println("Welcome (Enter QUIT to end):");
-
 			String response = null, tmp = "";
 			line = "";
 			while (!line.replaceAll("\\s*", "").equals("QUIT")) {
