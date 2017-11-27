@@ -91,7 +91,7 @@ public class ClientP2P {
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {
     			public void run() {
-					os.println("CTRL");
+					os.println("QUIT");
 					os.flush();
 				}
 			});
@@ -113,10 +113,6 @@ public class ClientP2P {
 					response = is.readLine();
 					check = response;
 					switch (check.toUpperCase()) {
-						case "CTRL":
-							System.out.println("The other participant is offline");
-							line = "QUIT";
-							break;
 						case "QUIT":
 							System.out.println("End of discussion");
 							line = check;
@@ -128,13 +124,10 @@ public class ClientP2P {
 			}
 		} catch (ConnectException e) {
 			System.out.println("Disconnected from discussion");
-			close();
 		} catch (IOException e) {
-			System.out.println("Socket read Error");
-			e.printStackTrace();
+			System.err.println("Socket read Error");
 		} finally {
 			close();
-			System.out.println("Connection Closed");
 		}
 	}
 }

@@ -33,15 +33,6 @@ public class ClientThread implements Runnable {
 		}
 	}
 
-	// public static boolean hostAvailabilityCheck() {
-    // 	try (Socket s = new Socket((String) null, 1337)) {
-    //     	return true;
-    // 	} catch (IOException ex) {
-    //     	/* ignore */
-    // 	}
-    // 	return false;
-	// }
-
 	private String processNew() throws IOException {
 		String ret = "", tmp = "", advert = "";
 		System.out.println("You want to make a new advert - press ENTER then type END to confirm your advert :");
@@ -143,8 +134,6 @@ public class ClientThread implements Runnable {
 			line = "";
 			while (!line.toUpperCase().replaceAll("\\s*", "").equals("QUIT")) {
 
-
-
 				if (br.ready()) {
 					line = br.readLine();
 					tmp = process(line.toLowerCase().replaceAll("\\s*", ""));
@@ -153,11 +142,6 @@ public class ClientThread implements Runnable {
 						os.flush();
 					}
 				}
-
-				// if(!hostAvailabilityCheck()){
-				// 	System.out.println("test");
-           		// 	break;
-    			// }
 
 				if(is.ready()){
 					response = is.readLine();
@@ -183,7 +167,7 @@ public class ClientThread implements Runnable {
 								int ad = Integer.parseInt(check[1]);
 								int port = Integer.parseInt(check[2]);
 								String adress = check[3];
-								System.out.println("ad " + ad + "- port " + port + " - adress" + adress);
+								System.out.println("You are contacted for the advert n°"+ad);
 								processCSVC(adress, port);
 							} catch(NumberFormatException e){}
 							break;
@@ -197,7 +181,7 @@ public class ClientThread implements Runnable {
 							break;
 						case HIHI:
 							System.out.println("You are connected"); break;
-						case CTRL:
+						case QUIT:
 							throw new ConnectException();
 						default:
 							System.out.println("DEFAULT"); break;
@@ -211,8 +195,7 @@ public class ClientThread implements Runnable {
 			System.out.println("Socket read Error");
 			e.printStackTrace();
 		} catch (NullPointerException e) {
-			close();
-			System.err.println("Server is offline");
+			System.err.println("An error as occured");
 		} finally {
 			close();
 			System.out.println("Connection Closed");

@@ -98,7 +98,7 @@ public class MessageServerImpl implements MessageServer {
 
 	@Override
 	public void sendQUIT(){
-		this.send("CTRL");
+		this.send("QUIT");
 	}
 
 }
