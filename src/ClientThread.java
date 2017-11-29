@@ -130,7 +130,7 @@ public class ClientThread implements Runnable {
 			System.out.println("Enter Data to echo Server (Enter QUIT to end):");
 			String response = null, tmp = "";
 			line = "";
-			while (!line.toUpperCase().replaceAll("\\s*", "").equals("QUIT")) {
+			while (!line.replaceAll("\\s*", "").equals("QUIT")) {
 				if (br.ready()) {
 					line = br.readLine();
 					tmp = process(line.toLowerCase().replaceAll("\\s*", ""));
