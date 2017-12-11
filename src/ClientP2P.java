@@ -56,7 +56,7 @@ public class ClientP2P {
 				}
 			}
 		}
-		throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
+		throw new IllegalStateException("Could not find a free TCP/IP port to start convertion with other client");
 	}
 
 	/**
