@@ -10,7 +10,7 @@ public class ClientP2P {
 
 	private int port;
 	private Socket sock;
-	private ServerSocket server;
+	private ServerSocket server = null;
 	private BufferedReader br, is;
 	private PrintWriter os;
 
@@ -56,7 +56,7 @@ public class ClientP2P {
 				}
 			}
 		}
-		throw new IllegalStateException("Could not find a free TCP/IP port to start convertion with other client");
+		throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
 	}
 
 	/**
@@ -72,6 +72,8 @@ public class ClientP2P {
 			this.is.close();
 			this.os.close();
 			this.sock.close();
+			if(this.server != null)
+				this.server.close();
 		} catch (IOException e) {
 			System.err.println("IO Error - close");
 		}
